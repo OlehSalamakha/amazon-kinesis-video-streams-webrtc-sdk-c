@@ -208,12 +208,17 @@ PVOID sendGstreamerAudioVideo(PVOID args)
                     break;
                 }
                 case DEVICE_SOURCE: {
+                    DLOGI("[KVS Gstreamer Master] Streaming video only");
                     senderPipeline = gst_parse_launch(
-                        "autovideosrc ! queue ! videoconvert ! video/x-raw,width=1280,height=720,framerate=25/1 ! "
-                        "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
-                        "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! "
-                        " appsink sync=TRUE "
-                        "emit-signals=TRUE name=appsink-video",
+                       "v4l2src device=/dev/video0 ! "
+                        "image/jpeg,width=1280,height=720,framerate=30/1 ! "
+                        "jpegdec ! videoconvert ! video/x-raw,format=I420 ! "
+                        "x264enc name=sampleVideoEncoder "
+                            "tune=zerolatency speed-preset=veryfast bitrate=512 "
+                            "bframes=0 key-int-max=60 aud=true byte-stream=true ! "
+                        "h264parse config-interval=-1 ! "
+                        "video/x-h264,stream-format=byte-stream,alignment=au ! "
+                        "appsink name=appsink-video sync=false emit-signals=true max-buffers=2 drop=true",
                         &error);
                     break;
                 }
@@ -269,13 +274,17 @@ PVOID sendGstreamerAudioVideo(PVOID args)
                 }
                 case DEVICE_SOURCE: {
                     senderPipeline = gst_parse_launch(
-                        "autovideosrc ! queue ! videoconvert ! video/x-raw,width=1280,height=720,framerate=25/1 ! "
-                        "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
-                        "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! appsink sync=TRUE emit-signals=TRUE "
-                        "name=appsink-video autoaudiosrc ! "
-                        "queue leaky=2 max-size-buffers=400 ! audioconvert ! audioresample ! opusenc name=sampleAudioEncoder ! "
-                        "audio/x-opus,rate=48000,channels=2 ! appsink sync=TRUE emit-signals=TRUE name=appsink-audio",
-                        &error);
+                        "v4l2src device=/dev/video0 ! "
+                        "image/jpeg,width=1280,height=720,framerate=30/1 ! "
+                        "jpegdec ! videoconvert ! video/x-raw,format=I420 ! "
+                        "x264enc name=sampleVideoEncoder "
+                            "tune=zerolatency speed-preset=veryfast bitrate=512 "
+                            "bframes=0 key-int-max=60 aud=true byte-stream=true ! "
+                        "h264parse config-interval=-1 ! "
+                        "video/x-h264,stream-format=byte-stream,alignment=au ! "
+                        "appsink name=appsink-video sync=false emit-signals=true max-buffers=2 drop=true",
+                        &error
+                    );
                     break;
                 }
                 case RTSP_SOURCE: {
@@ -406,8 +415,8 @@ INT32 main(INT32 argc, CHAR* argv[])
         if (STRCMP(argv[2], "video-only") == 0) {
             pSampleConfiguration->mediaType = SAMPLE_STREAMING_VIDEO_ONLY;
             DLOGI("[KVS Gstreamer Master] Streaming video only");
-        } else if (STRCMP(argv[2], "audio-video-storage") == 0) {
-            pSampleConfiguration->mediaType = SAMPLE_STREAMING_AUDIO_VIDEO;
+        } else if (STRCMP(argv[2], "video-storage") == 0) {
+            pSampleConfiguration->mediaType = SAMPLE_STREAMING_VIDEO_ONLY;
             pSampleConfiguration->channelInfo.useMediaStorage = TRUE;
             DLOGI("[KVS Gstreamer Master] Streaming audio and video");
         } else if (STRCMP(argv[2], "audio-video") == 0) {
