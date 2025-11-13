@@ -176,6 +176,7 @@ typedef struct {
     UINT32 logLevel;
     BOOL enableTwcc;
     BOOL enableIceStats;
+    CHAR videoDevicePath[128];
 } SampleConfiguration, *PSampleConfiguration;
 
 typedef struct {

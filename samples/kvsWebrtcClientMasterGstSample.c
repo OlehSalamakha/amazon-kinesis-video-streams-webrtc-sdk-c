@@ -268,14 +268,24 @@ PVOID sendGstreamerAudioVideo(PVOID args)
                     break;
                 }
                 case DEVICE_SOURCE: {
-                    senderPipeline = gst_parse_launch(
-                        "autovideosrc ! queue ! videoconvert ! video/x-raw,width=1280,height=720,framerate=25/1 ! "
-                        "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
-                        "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! appsink sync=TRUE emit-signals=TRUE "
-                        "name=appsink-video autoaudiosrc ! "
-                        "queue leaky=2 max-size-buffers=400 ! audioconvert ! audioresample ! opusenc name=sampleAudioEncoder ! "
-                        "audio/x-opus,rate=48000,channels=2 ! appsink sync=TRUE emit-signals=TRUE name=appsink-audio",
-                        &error);
+                    CHAR pipelineStr[1024];
+                    char* pipelineEnv = getenv("VIDEO_GST_PIPELINE");
+
+                    if (pipelineEnv != NULL) {
+                       SNPRINTF(pipelineStr, ARRAY_SIZE(pipelineStr), "%s", pipelineEnv);
+                    } else {
+                        SNPRINTF(pipelineStr, ARRAY_SIZE(pipelineStr),
+                            "v4l2src device=%s ! queue ! videoconvert ! "
+                            "video/x-raw,format=I420,width=640,height=480,framerate=30/1 ! "
+                            "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
+                            "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! "
+                            "appsink sync=TRUE emit-signals=TRUE name=appsink-video ",
+                            pSampleConfiguration->videoDevicePath
+                        );
+                     }
+
+                    printf("[INFO] 100500 Final GStreamer pipeline: %s\n", pipelineStr);
+                   senderPipeline = gst_parse_launch(pipelineStr, &error);
                     break;
                 }
                 case RTSP_SOURCE: {
@@ -427,6 +437,13 @@ INT32 main(INT32 argc, CHAR* argv[])
         } else if (STRCMP(argv[3], "devicesrc") == 0) {
             DLOGI("[KVS GStreamer Master] Using device source in GStreamer");
             pSampleConfiguration->srcType = DEVICE_SOURCE;
+            if (argc > 4) {
+                   STRNCPY(pSampleConfiguration->videoDevicePath, argv[4], ARRAY_SIZE(pSampleConfiguration->videoDevicePath));
+                   DLOGI("[KVS GStreamer Master] Set video device path: %s", pSampleConfiguration->videoDevicePath);
+            } else {
+                STRNCPY(pSampleConfiguration->videoDevicePath, "/dev/video0", ARRAY_SIZE(pSampleConfiguration->videoDevicePath));
+                DLOGI("[KVS GStreamer Master] Default video device path: %s", pSampleConfiguration->videoDevicePath);
+            }
         } else if (STRCMP(argv[3], "rtspsrc") == 0) {
             DLOGI("[KVS GStreamer Master] Using RTSP source in GStreamer");
             if (argc < 5) {
