@@ -279,12 +279,23 @@ PVOID sendGstreamerAudioVideo(PVOID args)
                             "video/x-raw,format=I420,width=640,height=480,framerate=30/1 ! "
                             "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
                             "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! "
-                            "appsink sync=TRUE emit-signals=TRUE name=appsink-video ",
+                            "appsink sync=TRUE emit-signals=TRUE name=appsink-video "
+                                    "alsasrc device=hw:2,0 ! "
+                            "queue leaky=2 max-size-buffers=400 ! "
+                            "audioconvert ! audioresample ! "
+                            "opusenc name=sampleAudioEncoder bitrate=64000 ! "
+                            "audio/x-opus,rate=48000,channels=1 ! "
+                            "appsink sync=TRUE emit-signals=TRUE name=appsink-audio",
                             pSampleConfiguration->videoDevicePath
                         );
                      }
-
+                    printf("[INFO] 100500 print final");
+                    printf("[INFO] 100500 print final");
+                    printf("[INFO] 100500 print final");
+                    printf("[INFO] 100500 print final");
+                    printf("100500 ================================\n");
                     printf("[INFO] 100500 Final GStreamer pipeline: %s\n", pipelineStr);
+                    printf("100500 ===============================\n");
                    senderPipeline = gst_parse_launch(pipelineStr, &error);
                     break;
                 }
