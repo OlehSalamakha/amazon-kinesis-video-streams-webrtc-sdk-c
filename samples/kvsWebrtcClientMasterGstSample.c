@@ -198,7 +198,7 @@ PVOID sendGstreamerAudioVideo(PVOID args)
                         senderPipeline = gst_parse_launch(
                             "videotestsrc pattern=ball is-live=TRUE ! "
                             "queue ! videoconvert ! videoscale ! video/x-raw,width=1280,height=720 ! "
-                            "clockoverlay halignment=right valignment=top time-format=\"%Y-%m-%d %H:%M:%S\" ! "
+                            // "clockoverlay halignment=right valignment=top time-format=\"%Y-%m-%d %H:%M:%S\" ! "
                             "videorate ! video/x-raw,framerate=25/1 ! "
                             "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
                             "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! "
@@ -245,7 +245,7 @@ PVOID sendGstreamerAudioVideo(PVOID args)
                         pSampleConfiguration->audioCodec == RTC_CODEC_OPUS) {
                         senderPipeline = gst_parse_launch(
                             "videotestsrc pattern=ball is-live=TRUE ! "
-                            "queue ! videorate ! videoscale ! videoconvert ! video/x-raw,width=1280,height=720,framerate=25/1 ! "
+                            "queue ! videorate ! videoscale ! videoconvert ! video/x-raw,width=1280,height=720,framerate=30/1 ! "
                             // "clockoverlay halignment=right valignment=top time-format=\"%Y-%m-%d %H:%M:%S\" ! "
                             "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
                             "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! "
@@ -289,7 +289,7 @@ PVOID sendGstreamerAudioVideo(PVOID args)
                 //             pSampleConfiguration->videoDevicePath
                 //         );
                 //      }
-                //     printf("[INFO] 100500 print final");
+                    printf("[INFO] 100500 DEVICE SOURCE");
                 //     printf("[INFO] 100500 print final");
                 //     printf("[INFO] 100500 print final");
                 //     printf("[INFO] 100500 print final");
@@ -297,14 +297,40 @@ PVOID sendGstreamerAudioVideo(PVOID args)
                 //     printf("[INFO] 100500 Final GStreamer pipeline: %s\n", pipelineStr);
                 //     printf("100500 ===============================\n");
                 //    senderPipeline = gst_parse_launch(pipelineStr, &error);
+
+//                 gst-launch-1.0 -e \
+                //   autovideosrc ! queue ! videoconvert ! \
+                //   video/x-raw,width=640,height=480,framerate=30/1 ! \
+                //   x264enc speed-preset=veryfast tune=zerolatency bitrate=512 bframes=0 key-int-max=60 ! \
+                //   h264parse ! mp4mux ! filesink location=autotest.mp4
+                // senderPipeline = gst_parse_launch(
+                //         "autovideosrc ! queue ! videoconvert ! video/x-raw,width=640,height=420,framerate=30/1 ! "
+                //         "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
+                //         "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! appsink sync=TRUE emit-signals=TRUE ",
+                //         // "name=appsink-video autoaudiosrc ! "
+                //         // "queue leaky=2 max-size-buffers=400 ! audioconvert ! audioresample ! opusenc name=sampleAudioEncoder ! "
+                //         // "audio/x-opus,rate=48000,channels=2 ! appsink sync=TRUE emit-signals=TRUE name=appsink-audio",
+                //         &error);
                 senderPipeline = gst_parse_launch(
-                        "autovideosrc ! queue ! videoconvert ! video/x-raw,width=640,height=42-,framerate=30/1 ! "
-                        "x264enc name=sampleVideoEncoder bframes=0 speed-preset=veryfast bitrate=512 byte-stream=TRUE tune=zerolatency ! "
-                        "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! appsink sync=TRUE emit-signals=TRUE "
-                        // "name=appsink-video autoaudiosrc ! "
-                        // "queue leaky=2 max-size-buffers=400 ! audioconvert ! audioresample ! opusenc name=sampleAudioEncoder ! "
-                        // "audio/x-opus,rate=48000,channels=2 ! appsink sync=TRUE emit-signals=TRUE name=appsink-audio",
-                        &error);
+                    // VIDEO: /dev/video0 gives MJPG -> decode -> I420 -> x264 -> h264parse -> appsink-video
+                    "v4l2src device=/dev/video0 ! "
+                    "image/jpeg,width=1280,height=720,framerate=30/1 ! "
+                    "jpegdec ! videoconvert ! video/x-raw,format=I420 ! "
+                    "x264enc name=sampleVideoEncoder tune=zerolatency speed-preset=veryfast "
+                    "bitrate=512 bframes=0 key-int-max=60 aud=true byte-stream=true ! "
+                    "h264parse config-interval=1 ! "
+                    "video/x-h264,stream-format=byte-stream,alignment=au,profile=baseline ! "
+                    "appsink name=appsink-video sync=false emit-signals=true max-buffers=2 drop=true "
+                  
+                    // AUDIO: synthetic ticks/sine -> opus -> appsink-audio
+                    "audiotestsrc wave=ticks is-live=true ! "
+                    "queue leaky=2 max-size-buffers=400 ! "
+                    "audioconvert ! audioresample ! "
+                    "opusenc name=sampleAudioEncoder bitrate=64000 ! "
+                    "audio/x-opus,rate=48000,channels=2 ! "
+                    "appsink name=appsink-audio sync=false emit-signals=true max-buffers=50 drop=true",
+                    &error
+                  );
                     break;
                 }
                 case RTSP_SOURCE: {

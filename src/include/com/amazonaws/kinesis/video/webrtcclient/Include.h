@@ -648,27 +648,27 @@ extern "C" {
 /**
  * Default signaling creation timeout
  */
-#define SIGNALING_CREATE_TIMEOUT (10 * HUNDREDS_OF_NANOS_IN_A_SECOND)
+#define SIGNALING_CREATE_TIMEOUT (30 * HUNDREDS_OF_NANOS_IN_A_SECOND)
 
 /**
  * Default connect sync API timeout
  */
-#define SIGNALING_CONNECT_STATE_TIMEOUT (15 * HUNDREDS_OF_NANOS_IN_A_SECOND)
+#define SIGNALING_CONNECT_STATE_TIMEOUT (30 * HUNDREDS_OF_NANOS_IN_A_SECOND)
 
 /**
  * Default disconnect sync API timeout
  */
-#define SIGNALING_DISCONNECT_STATE_TIMEOUT (15 * HUNDREDS_OF_NANOS_IN_A_SECOND)
+#define SIGNALING_DISCONNECT_STATE_TIMEOUT (30 * HUNDREDS_OF_NANOS_IN_A_SECOND)
 
 /**
  * Default refresh ICE server config API timeout
  */
-#define SIGNALING_REFRESH_ICE_CONFIG_STATE_TIMEOUT (20 * HUNDREDS_OF_NANOS_IN_A_SECOND)
+#define SIGNALING_REFRESH_ICE_CONFIG_STATE_TIMEOUT (30 * HUNDREDS_OF_NANOS_IN_A_SECOND)
 
 /**
  * Default signaling connection establishment timeout
  */
-#define SIGNALING_CONNECT_TIMEOUT (5 * HUNDREDS_OF_NANOS_IN_A_SECOND)
+#define SIGNALING_CONNECT_TIMEOUT (10 * HUNDREDS_OF_NANOS_IN_A_SECOND)
 
 /**
  * Default minimum number of threads in the threadpool for the SDK
@@ -694,17 +694,17 @@ extern "C" {
 /**
  * Default timeout for sending data
  */
-#define SIGNALING_SEND_TIMEOUT (15 * HUNDREDS_OF_NANOS_IN_A_SECOND)
+#define SIGNALING_SEND_TIMEOUT (30* HUNDREDS_OF_NANOS_IN_A_SECOND)
 #else
 /**
  * Default timeout for sending data
  */
-#define SIGNALING_SEND_TIMEOUT (5 * HUNDREDS_OF_NANOS_IN_A_SECOND)
+#define SIGNALING_SEND_TIMEOUT (10 * HUNDREDS_OF_NANOS_IN_A_SECOND)
 #endif
 /**
  * Default timeout for deleting a channel
  */
-#define SIGNALING_DELETE_TIMEOUT (5 * HUNDREDS_OF_NANOS_IN_A_SECOND)
+#define SIGNALING_DELETE_TIMEOUT (10 * HUNDREDS_OF_NANOS_IN_A_SECOND)
 
 /**
  * Default signaling message alive time
